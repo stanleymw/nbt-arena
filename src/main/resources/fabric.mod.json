@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "id": "nbt-arena",
+  "version": "${version}",
+  "name": "nbt-arena",
+  "description": "",
+  "authors": [],
+  "contact": {},
+  "license": "All-Rights-Reserved",
+  "icon": "assets/nbt-arena/icon.png",
+  "environment": "client",
+  "entrypoints": {
+    "fabric-datagen": [
+      "wang.stan.nbtArena.client.NbtArenaDataGenerator"
+    ],
+    "client": [
+      "wang.stan.nbtArena.client.NbtArenaClient"
+    ],
+    "main": [
+      "wang.stan.nbtArena.NbtArena"
+    ]
+  },
+  "mixins": [
+    "nbt-arena.mixins.json",
+    {
+      "config": "nbt-arena.client.mixins.json",
+      "environment": "client"
+    }
+  ],
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "fabric-api": "*",
+    "minecraft": "${minecraft_version}"
+  }
+}
