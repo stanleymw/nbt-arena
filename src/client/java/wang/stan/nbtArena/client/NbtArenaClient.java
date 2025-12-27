@@ -1,58 +1,63 @@
 package wang.stan.nbtArena.client;
 
+import com.mojang.brigadier.Command;
 import com.mojang.brigadier.context.CommandContext;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.screen.ingame.GenericContainerScreen;
+import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.SimpleInventory;
-import net.minecraft.item.Item;
+import net.minecraft.item.ItemGroups;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.screen.Generic3x3ContainerScreenHandler;
-import net.minecraft.screen.GenericContainerScreenHandler;
-import net.minecraft.screen.SimpleNamedScreenHandlerFactory;
 import net.minecraft.text.Text;
 
-import java.awt.*;
+import java.util.ArrayList;
 
 public class NbtArenaClient implements ClientModInitializer {
 
+    public static int addHandItem(CommandContext<FabricClientCommandSource> context) {
+        ItemStack to_add = context.getSource().getPlayer().getMainHandStack();
+        context.getSource().sendFeedback(
+                Text.literal("Adding ").append(to_add.toHoverableText())
+        );
+        NBTArena.addItem(to_add);
+
+        NBTArena.refreshCreativeTabs();
+        return 1;
+    }
+
+    public static int addHotbar(CommandContext<FabricClientCommandSource> context) {
+        PlayerInventory inventory = context.getSource().getPlayer().getInventory();
+        ArrayList<ItemStack> hotbarItems = new ArrayList<>(9);
+
+        for (int i = 0; i < 9; i++) {
+            ItemStack stack = inventory.getStack(i);
+            if (!stack.isEmpty()) {
+                hotbarItems.add(stack);
+            }
+        }
+        for (ItemStack item : hotbarItems) {
+            context.getSource().sendFeedback(
+                    Text.literal("Adding ").append(item.toHoverableText())
+            );
+        }
+        NBTArena.addItems(hotbarItems);
+
+        NBTArena.refreshCreativeTabs();
+        return 1;
+    }
+
     @Override
     public void onInitializeClient() {
-        ClientCommandRegistrationCallback.EVENT.register(
-            (commandDispatcher, commandRegistryAccess) -> {
-                commandDispatcher.register(ClientCommandManager.literal("arena").executes(context -> {
-                    FabricClientCommandSource source = context.getSource();
-                    source.sendFeedback(Text.literal("Opening NBT Arena..."));
+        NBTArena.register();
 
-                    PlayerInventory playerInv = source.getPlayer().getInventory();
-                    SimpleInventory inv = new SimpleInventory(54);
-
-                    inv.addStack(new ItemStack(Items.DIAMOND_SWORD));
-
-                    GenericContainerScreenHandler handler = GenericContainerScreenHandler.createGeneric9x6(0, playerInv, inv);
-
-                    MinecraftClient client = source.getClient();
-                    client.execute(() -> {
-                        client.setScreen(new NBTArenaScreen(
-                                handler, playerInv, Text.literal("NBT Arena")
-                        ));
-                    });
-
-//                    source.getPlayer().openHandledScreen(
-//                            new SimpleNamedScreenHandlerFactory((syncId, playerInventory, player) -> {
-//                                return GenericContainerScreenHandler.createGeneric9x6(syncId, playerInventory);
-//                            }, Text.literal("NBT Arena"))
-//                    );
-
-                    return 1;
-                }
-                ));
-            }
-        );
+        ClientCommandRegistrationCallback.EVENT.register(((commandDispatcher, commandRegistryAccess) -> {
+            commandDispatcher.register(
+                    ClientCommandManager.literal("arena")
+                    .then(ClientCommandManager.literal("hand").executes(NbtArenaClient::addHandItem))
+                    .then(ClientCommandManager.literal("hotbar").executes(NbtArenaClient::addHotbar))
+            );
+        }));
     }
 }
