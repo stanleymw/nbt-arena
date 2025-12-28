@@ -28,12 +28,12 @@ public class NBTArena {
             .displayName(Text.literal("NBT Arena"))
             .build();
 
-    public static void saveToFile(String name) {
+    public static void saveToFile(String name, RegistryWrapper.WrapperLookup reg) {
         var cfgPath = FabricLoader.getInstance().getConfigDir();
         var f = cfgPath.resolve(name);
 
         try {
-            NbtIo.writeCompressed(serialize(), f);
+            NbtIo.writeCompressed(serialize(reg), f);
 
             log.info("NBT Arena Data saved to {}", name);
         } catch (java.io.IOException e) {
@@ -42,7 +42,7 @@ public class NBTArena {
 
     }
 
-    public static void loadFromFile(String name) {
+    public static void loadFromFile(String name, RegistryWrapper.WrapperLookup reg) {
         var cfgPath = FabricLoader.getInstance().getConfigDir();
         var f = cfgPath.resolve(name);
 
@@ -52,23 +52,27 @@ public class NBTArena {
 
             log.info("NBT Arena Data loaded from {}", name);
 
-            deserialize(res);
+            deserialize(res, reg);
         } catch (java.io.IOException e) {
             log.error("Unable to LOAD nbt arena file!", e);
         }
     }
 
-    public static NbtCompound serialize() {
+    public static NbtCompound serialize(RegistryWrapper.WrapperLookup registry) {
         NbtCompound root = new NbtCompound();
         var serializer = ItemStack.CODEC.listOf();
-        root.put("ARENA_ITEMS", serializer.encodeStart(NbtOps.INSTANCE, ARENA_ITEMS).getOrThrow());
+
+        RegistryOps<NbtElement> registryOps = RegistryOps.of(NbtOps.INSTANCE, registry);
+        root.put("ARENA_ITEMS", serializer.encodeStart(registryOps, ARENA_ITEMS).getOrThrow());
         return root;
     }
 
-    public static void deserialize(NbtCompound ser) {
+    public static void deserialize(NbtCompound ser, RegistryWrapper.WrapperLookup registry ) {
         NbtElement elem = ser.get("ARENA_ITEMS");
-        var serializer = ItemStack.CODEC.listOf();
-        ARENA_ITEMS = new ArrayList<>(serializer.decode(NbtOps.INSTANCE, elem).getOrThrow().getFirst());
+        var deserializer = ItemStack.CODEC.listOf();
+
+        RegistryOps<NbtElement> registryOps = RegistryOps.of(NbtOps.INSTANCE, registry);
+        ARENA_ITEMS = new ArrayList<>(deserializer.decode(registryOps, elem).getOrThrow().getFirst());
     }
 
     public static boolean addItemSafe(ItemStack it) {
@@ -86,11 +90,11 @@ public class NBTArena {
     }
 
     public static void init() {
-        loadFromFile("arena.dat");
         Registry.register(Registries.ITEM_GROUP, ARENA_KEY, ARENA_ITEM_GROUP);
 
-        ItemGroupEvents.modifyEntriesEvent(NBTArena.ARENA_KEY).register((entries -> {
-            entries.addAll(ARENA_ITEMS);
+        ItemGroupEvents.modifyEntriesEvent(NBTArena.ARENA_KEY).register((context -> {
+            loadFromFile("arena.dat", context.getContext().lookup());
+            context.addAll(ARENA_ITEMS);
         }));
     }
 

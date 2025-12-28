@@ -21,7 +21,7 @@ public class NbtArenaClient implements ClientModInitializer {
         NBTArena.addItemSafe(to_add);
 
         NBTArena.refreshCreativeTabs();
-        NBTArena.saveToFile("arena.dat");
+        NBTArena.saveToFile("arena.dat", context.getSource().getWorld().getRegistryManager());
         return 1;
     }
 
@@ -45,7 +45,7 @@ public class NbtArenaClient implements ClientModInitializer {
         NBTArena.addAll(hotbarItems);
 
         NBTArena.refreshCreativeTabs();
-        NBTArena.saveToFile("arena.dat");
+        NBTArena.saveToFile("arena.dat", context.getSource().getWorld().getRegistryManager());
         return 1;
     }
 
@@ -59,7 +59,7 @@ public class NbtArenaClient implements ClientModInitializer {
         );
 
         NBTArena.refreshCreativeTabs();
-        NBTArena.saveToFile("arena.dat");
+        NBTArena.saveToFile("arena.dat", context.getSource().getWorld().getRegistryManager());
         return 1;
     }
 
