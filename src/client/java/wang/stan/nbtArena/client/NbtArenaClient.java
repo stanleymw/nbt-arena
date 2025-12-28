@@ -20,8 +20,10 @@ public class NbtArenaClient implements ClientModInitializer {
         );
         NBTArena.addItemSafe(to_add);
 
-        NBTArena.refreshCreativeTabs();
-        NBTArena.saveToFile("arena.dat", context.getSource().getWorld().getRegistryManager());
+        var registryManager = context.getSource().getWorld().getRegistryManager();
+        var networkHandler = context.getSource().getPlayer().networkHandler;
+        NBTArena.saveToFile("arena.dat", registryManager);
+        NBTArena.refreshCreativeTabs(registryManager, networkHandler);
         return 1;
     }
 
@@ -44,8 +46,10 @@ public class NbtArenaClient implements ClientModInitializer {
 
         NBTArena.addAll(hotbarItems);
 
-        NBTArena.refreshCreativeTabs();
-        NBTArena.saveToFile("arena.dat", context.getSource().getWorld().getRegistryManager());
+        var registryManager = context.getSource().getWorld().getRegistryManager();
+        var networkHandler = context.getSource().getPlayer().networkHandler;
+        NBTArena.saveToFile("arena.dat", registryManager);
+        NBTArena.refreshCreativeTabs(registryManager, networkHandler);
         return 1;
     }
 
@@ -58,8 +62,10 @@ public class NbtArenaClient implements ClientModInitializer {
                 Text.literal("Added inventory!")
         );
 
-        NBTArena.refreshCreativeTabs();
-        NBTArena.saveToFile("arena.dat", context.getSource().getWorld().getRegistryManager());
+        var registryManager = context.getSource().getWorld().getRegistryManager();
+        var networkHandler = context.getSource().getPlayer().networkHandler;
+        NBTArena.saveToFile("arena.dat", registryManager);
+        NBTArena.refreshCreativeTabs(registryManager, networkHandler);
         return 1;
     }
 

@@ -4,6 +4,7 @@ import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.item.*;
 import net.minecraft.nbt.*;
 import net.minecraft.registry.*;
@@ -39,7 +40,6 @@ public class NBTArena {
         } catch (java.io.IOException e) {
             log.error("Unable to serialize nbt arena file!", e);
         }
-
     }
 
     public static void loadFromFile(String name, RegistryWrapper.WrapperLookup reg) {
@@ -98,16 +98,11 @@ public class NBTArena {
         }));
     }
 
-    public static void refreshCreativeTabs() {
-        MinecraftClient client = MinecraftClient.getInstance();
-        if (client.player != null && client.player.networkHandler != null) {
-            // This triggers the internal logic that calls modifyEntriesEvent again
-            assert client.world != null;
-            ItemGroups.updateDisplayContext(
-                    client.player.networkHandler.getEnabledFeatures(),
-                    true, // Searchable
-                    client.world.getRegistryManager()
-            );
-        }
+    public static void refreshCreativeTabs(RegistryWrapper.WrapperLookup reg, ClientPlayNetworkHandler networkHandler) {
+        ItemGroups.updateDisplayContext(
+                networkHandler.getEnabledFeatures(),
+                true, // Searchable
+                reg
+        );
     }
 }
