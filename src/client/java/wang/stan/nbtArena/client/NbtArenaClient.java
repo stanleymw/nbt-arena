@@ -1,14 +1,11 @@
 package wang.stan.nbtArena.client;
 
-import com.mojang.brigadier.Command;
 import com.mojang.brigadier.context.CommandContext;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
-import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.item.ItemGroups;
 import net.minecraft.item.ItemStack;
 import net.minecraft.text.Text;
 
@@ -21,9 +18,10 @@ public class NbtArenaClient implements ClientModInitializer {
         context.getSource().sendFeedback(
                 Text.literal("Adding ").append(to_add.toHoverableText())
         );
-        NBTArena.addItem(to_add);
+        NBTArena.addItemSafe(to_add);
 
         NBTArena.refreshCreativeTabs();
+        NBTArena.saveToFile("arena.dat");
         return 1;
     }
 
@@ -37,26 +35,44 @@ public class NbtArenaClient implements ClientModInitializer {
                 hotbarItems.add(stack);
             }
         }
+
         for (ItemStack item : hotbarItems) {
             context.getSource().sendFeedback(
                     Text.literal("Adding ").append(item.toHoverableText())
             );
         }
-        NBTArena.addItems(hotbarItems);
+
+        NBTArena.addAll(hotbarItems);
 
         NBTArena.refreshCreativeTabs();
+        NBTArena.saveToFile("arena.dat");
+        return 1;
+    }
+
+
+    public static int addInventory(CommandContext<FabricClientCommandSource> context) {
+        PlayerInventory inventory = context.getSource().getPlayer().getInventory();
+        NBTArena.addAll(inventory.getMainStacks());
+
+        context.getSource().sendFeedback(
+                Text.literal("Added inventory!")
+        );
+
+        NBTArena.refreshCreativeTabs();
+        NBTArena.saveToFile("arena.dat");
         return 1;
     }
 
     @Override
     public void onInitializeClient() {
-        NBTArena.register();
+        NBTArena.init();
 
         ClientCommandRegistrationCallback.EVENT.register(((commandDispatcher, commandRegistryAccess) -> {
             commandDispatcher.register(
                     ClientCommandManager.literal("arena")
                     .then(ClientCommandManager.literal("hand").executes(NbtArenaClient::addHandItem))
                     .then(ClientCommandManager.literal("hotbar").executes(NbtArenaClient::addHotbar))
+                    .then(ClientCommandManager.literal("inventory").executes(NbtArenaClient::addInventory))
             );
         }));
     }
