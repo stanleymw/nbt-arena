@@ -68,7 +68,7 @@ public class NBTArena {
     public static void deserialize(NbtCompound ser) {
         NbtElement elem = ser.get("ARENA_ITEMS");
         var serializer = ItemStack.CODEC.listOf();
-        ARENA_ITEMS = serializer.decode(NbtOps.INSTANCE, elem).getOrThrow().getFirst();
+        ARENA_ITEMS = new ArrayList<>(serializer.decode(NbtOps.INSTANCE, elem).getOrThrow().getFirst());
     }
 
     public static boolean addItemSafe(ItemStack it) {
